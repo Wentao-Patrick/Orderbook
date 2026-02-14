@@ -1,0 +1,15 @@
+,rlop_ask_mean,rlop_bid_mean,vol_bid_mean,vol_ask_mean,spread_mean,imbalance_ob_mean,imb_of,rlop_ask_mean_lag1,rlop_bid_mean_lag1,vol_bid_mean_lag1,vol_ask_mean_lag1,spread_mean_lag1,imbalance_ob_mean_lag1,imb_of_lag1
+rlop_ask_mean,0,0,0,0,0,0,0,1,1,0,1,1,0,0
+rlop_bid_mean,0,0,0,0,0,0,0,1,1,0,0,0,0,0
+vol_bid_mean,0,0,0,0,0,0,0,1,0,1,1,1,0,0
+vol_ask_mean,0,0,0,0,0,0,0,1,0,1,1,1,0,0
+spread_mean,0,0,0,0,0,0,0,1,0,1,1,1,0,0
+imbalance_ob_mean,0,0,0,0,0,0,0,0,0,0,0,0,1,0
+imb_of,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+rlop_ask_mean_lag1,1,1,1,1,1,0,0,0,0,0,0,0,0,0
+rlop_bid_mean_lag1,1,1,0,0,0,0,0,0,0,0,0,0,0,0
+vol_bid_mean_lag1,0,0,1,1,1,0,0,0,0,0,0,0,0,0
+vol_ask_mean_lag1,1,0,1,1,1,0,0,0,0,0,0,0,0,0
+spread_mean_lag1,1,0,1,1,1,0,0,0,0,0,0,0,0,0
+imbalance_ob_mean_lag1,0,0,0,0,0,1,0,0,0,0,0,0,0,0
+imb_of_lag1,0,0,0,0,0,0,0,0,0,0,0,0,0,0

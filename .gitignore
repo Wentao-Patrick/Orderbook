@@ -1,0 +1,32 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+
+# Temporary folders in this repo
+_tmp_fitrs/
+._tmp_pdftext/
+
+# Common temporary outputs
+*.tmp
+*.log
+
+# Keep large research artifacts tracked only if explicitly needed
+# (Uncomment if you decide to exclude them from Git)
+# *.mp4
+# *.zip
+# *.parquet
