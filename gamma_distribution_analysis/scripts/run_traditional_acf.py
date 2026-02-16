@@ -7,7 +7,12 @@ import numpy as np
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "orderbook_construction"))
+SCRIPT_DIR = Path(__file__).resolve().parent
+ANALYSIS_ROOT = SCRIPT_DIR.parent
+PROJECT_ROOT = ANALYSIS_ROOT.parent
+RESULTS_DIR = ANALYSIS_ROOT / "results"
+
+sys.path.insert(0, str(PROJECT_ROOT / "orderbook_construction"))
 
 from lob_sample_construction import LOBSampleConstructor
 from traditional_acf_analysis import TraditionalACFAnalyzer
@@ -60,12 +65,13 @@ def main():
     
     # [STEP 3] Visualizations
     print("\n[STEP 3] Generating visualizations...")
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     analyzer.plot_acf_detailed(
-        save_path="/Users/charles/Documents/Tâches/Mathématiques/EA/EA_recherche/gamma_distribution_analysis/05_traditional_acf.png"
+        save_path=str(RESULTS_DIR / "05_traditional_acf.png")
     )
     
     analyzer.plot_ljung_box(
-        save_path="/Users/charles/Documents/Tâches/Mathématiques/EA/EA_recherche/gamma_distribution_analysis/06_ljung_box_test.png"
+        save_path=str(RESULTS_DIR / "06_ljung_box_test.png")
     )
     
     # [STEP 4] LOB Interpretation

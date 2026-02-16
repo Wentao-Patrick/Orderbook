@@ -11,7 +11,12 @@ import numpy as np
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "orderbook_construction"))
+SCRIPT_DIR = Path(__file__).resolve().parent
+ANALYSIS_ROOT = SCRIPT_DIR.parent
+PROJECT_ROOT = ANALYSIS_ROOT.parent
+RESULTS_DIR = ANALYSIS_ROOT / "results"
+
+sys.path.insert(0, str(PROJECT_ROOT / "orderbook_construction"))
 
 from lob_sample_construction import LOBSampleConstructor
 from orderbook import iter_orderupdate_file
@@ -87,27 +92,25 @@ def main():
     # Step 3: Generate visualizations
     print(f"\n[STEP 3] Generating visualizations...")
     
-    # Use correct project directory - same as gamma_fitting
-    project_dir = Path(__file__).parent
-    project_dir.mkdir(parents=True, exist_ok=True)
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     
     # Information quantity plot
     fig1, _ = GarcinBroutyVisualizer.plot_information_quantity(
         bid_result, ask_result,
-        save_path=str(project_dir / "07_gb_information_quantity.png")
+        save_path=str(RESULTS_DIR / "07_gb_information_quantity.png")
     )
     
     # Entropy comparison plot
     fig2, _ = GarcinBroutyVisualizer.plot_entropy_comparison(
         bid_result, ask_result,
-        save_path=str(project_dir / "08_gb_entropy_comparison.png")
+        save_path=str(RESULTS_DIR / "08_gb_entropy_comparison.png")
     )
     
     # Conditional probabilities plot
     fig3, _ = GarcinBroutyVisualizer.plot_conditional_probabilities(
         bid_result, ask_result,
         max_L=5,
-        save_path=str(project_dir / "09_gb_conditional_probs.png")
+        save_path=str(RESULTS_DIR / "09_gb_conditional_probs.png")
     )
     
     # Step 4: Print interpretation
