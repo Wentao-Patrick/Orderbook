@@ -1,197 +1,119 @@
-# Serial Dependence Analysis: Results Summary
+# Serial Dependence Analysis Report (Updated)
 
-**Study Period**: October 1, 2019 (Sanofi - FR0000120578)  
-**Data**: 52,733 LOB snapshots at 1-second intervals  
-**Analysis Window**: 14.8 hours of trading data
-
----
-
-## Executive Summary
-
-Both **Autocorrelation (ACF)** and **Garcin-Brouty information-theoretic** methods conclusively demonstrate **strong serial dependence** in log-volumes of the limit order book.
-
-### Key Finding
-✓ **BOTH methods detect serial dependence** → Strong evidence of market predictability violations
+**Analysis date**: 2026-02-16  
+**Instrument**: Sanofi (FR0000120578)  
+**Data source**: `sanofi_book_snapshots_1s.parquet`  
+**Time range**: 2019-10-01 09:00:18.178966266+02:00 to 2019-10-01 17:29:59.178966266+02:00  
+**Session length**: 8h 29m 41s  
+**Usable samples**: BID = 30,582, ASK = 30,582 (`log(volume1)` with `volume1 > 0`)
 
 ---
 
-## 1. AUTOCORRELATION ANALYSIS (Linear Dependence)
+## 1. Methods and Run Configuration
 
-### BID Side
-- **Sample size**: 52,733
-- **Mean log-volume**: 4.4260  
-- **Std Dev**: 1.7752
-- **95% Confidence threshold**: ±0.0085
-- **Significant lags**: ALL 50 lags tested exceed confidence bounds
-- **Lag-1 ACF**: ρ(1) = **0.9597** (extremely strong!)
-- **Lag-10 ACF**: ρ(10) = **0.8034**
+| Method | Script | Key parameters |
+|---|---|---|
+| Traditional ACF | `scripts/run_traditional_acf.py` | `nlags=100`, `method='fft'` |
+| Garcin-Brouty | `scripts/run_garcin_brouty.py` | `max_L=20` |
 
-**Interpretation**: 
-- Log-volumes exhibit **strong positive autocorrelation**
-- ACF decays slowly (geometric decay pattern typical of ARMA(1,0) or random walk with drift)
-- Volume at time $t$ is **96% correlated** with volume at $t-1$
-
-### ASK Side
-- **Sample size**: 52,733
-- **Mean log-volume**: 5.2416
-- **Std Dev**: 1.2748
-- **Lag-1 ACF**: ρ(1) = **0.9295**
-- **Lag-10 ACF**: ρ(10) = **0.7857**
-
-**Interpretation**:
-- Similar strong persistence as BID side
-- Slightly weaker first-lag correlation than BID (93% vs 96%)
-- Consistent ARMA-like behavior
-
-### Conclusions from ACF
-1. **Market has clear linear predictability** - past volumes strongly predict future volumes
-2. **Mean reversion likely present** - slow decay of ACF suggests conditional mean shift
-3. **Both sides exhibit similar dependence structures**
-4. **Violation of weak-form market efficiency** (EMH)
+Notes:
+- Both pipelines now read snapshots directly from `sanofi_book_snapshots_1s.parquet`.
+- In this environment, `statsmodels` is unavailable, so ACF/Ljung-Box used the manual fallback implementation in `traditional_acf_analysis.py`.
 
 ---
 
-## 2. GARCIN-BROUTY INFORMATION-THEORETIC ANALYSIS
+## 2. Traditional ACF Results
 
-### BID Side
+### 2.1 Core statistics
 
-**Entropy Analysis**:
-- Unconditional entropy: $H(X) = 1.789$ nats
-- Information from 1-second past: $I(X_t; X_{t+1}) = 1.190$ nats
-- Normalized predictability: **66.5%** of uncertainty resolved by past
+| Side | Mean log-volume | Std log-volume |
+|---|---:|---:|
+| BID | 5.6479 | 1.0243 |
+| ASK | 5.7940 | 0.9738 |
 
-**Mutual Information (First 10 Lags)**:
+### 2.2 Dependence metrics
 
-| Lag | MI (nats) | Conditional H | Transfer Entropy |
-|-----|-----------|---------------|-----------------|
-| 1   | 1.1899    | 0.5986        | 1.1899          |
-| 2   | 0.9906    | 0.7980        | 0.9906          |
-| 3   | 0.8866    | 0.9020        | 0.8866          |
-| 4   | 0.8214    | 0.9673        | 0.8214          |
-| 5   | 0.7733    | 1.0153        | 0.7733          |
-| ...  | ...       | ...           | ...             |
-| 10  | 0.6633    | 1.1254        | 0.6633          |
+| Side | ACF(1) | ACF(5) | ACF(10) | ACF(20) | Half-life (lags) |
+|---|---:|---:|---:|---:|---:|
+| BID | 0.7687 | 0.4083 | 0.2456 | 0.1186 | 2.64 |
+| ASK | 0.7628 | 0.3976 | 0.2358 | 0.1218 | 2.56 |
 
-**Mean MI (1-10)**: 0.815 nats  
-**Predictability Score**: **0.5344** (normalized: 53.4%)
+### 2.3 Significance
 
-### ASK Side
+- 95% confidence bound: `+-0.0112`
+- Significant lags:
+  - BID: `100 / 100`
+  - ASK: `100 / 100`
+- Ljung-Box rejections at alpha=0.05:
+  - BID: `100 / 100`
+  - ASK: `100 / 100`
+- Ljung-Box p-values at lag 5/10/20 are numerically 0 (machine underflow), i.e. effectively extremely significant.
 
-**Entropy Analysis**:
-- Unconditional entropy: $H(X) = 1.815$ nats
-- Information from 1-second past: $I(X_t; X_{t+1}) = 1.167$ nats
-- Normalized predictability: **64.2%** of uncertainty resolved
-
-**Mean MI (1-10)**: 0.741 nats  
-**Predictability Score**: **0.4630** (normalized: 46.3%)
-
-### Interpretation of Garcin-Brouty Results
-
-1. **High mutual information** indicates that past volume states provide **substantial information** about future states
-2. **Predictability score > 0.3** strongly violates Fama's weak-form efficiency hypothesis
-3. **BID side slightly more predictable** (53.4% vs 46.3%)
-4. **Information decay is smooth** - gradual loss of predictive power as lag increases
-5. **No sudden drops** in MI suggest absence of structural breaks during trading day
+Interpretation:
+- Strong short-term persistence exists on both sides.
+- Dependence decays with lag but remains clearly positive through 20 seconds.
+- BID and ASK show very similar autocorrelation structure.
 
 ---
 
-## 3. COMPARATIVE ANALYSIS: ACF vs GARCIN-BROUTY
+## 3. Garcin-Brouty Results (Information-Theoretic)
 
-### Strengths of Each Method
+### 3.1 Headline metrics
 
-| Aspect | ACF | Garcin-Brouty |
-|--------|-----|---------------|
-| **Detects** | Linear dependencies only | ANY form of dependence |
-| **Robustness** | Assumes stationarity | Model-free |
-| **Interpretability** | Clear correlation magnitude | Information-theoretic units |
-| **Sensitivity** | High Type II error risk | Captures non-linear patterns |
+| Side | Max information | L at max information | Half-life L |
+|---|---:|---:|---:|
+| BID | 0.9994 | 1 | 1 |
+| ASK | 0.9993 | 1 | 1 |
 
-### Results Comparison
+### 3.2 Information profile (selected L)
 
-**Both methods agree**: ✓ **Significant serial dependence exists**
+| Side | I(L=1) | I(L=5) | I(L=10) | I(L=20) |
+|---|---:|---:|---:|---:|
+| BID | 0.9994 | 0.2390 | 0.2400 | 0.6299 |
+| ASK | 0.9993 | 0.1809 | 0.1847 | 0.6805 |
 
-- **ACF**: Lag-1 correlation ρ = 0.96 → 96% of current state explained by past
-- **Garcin-Brouty**: MI = 1.19 nats → Past resolves 66.5% of entropy
+### 3.3 Entropy at L=1
 
-### Why GB is More Powerful
-- ACF would **miss** any non-linear relationships
-- GB captures relationships like: $X_{t+1} = f(X_t)$ for ANY function $f$
-- Information-theoretic approach is **model-agnostic**
+| Side | H_market(L=1) | H_emh(L=1) |
+|---|---:|---:|
+| BID | 0.0006 | 1.0000 |
+| ASK | 0.0007 | 1.0000 |
 
----
-
-## 4. PRACTICAL IMPLICATIONS
-
-### Market Efficiency
-- **Result**: Both bid and ask log-volumes violate weak-form EMH
-- **Mechanism**: Strong mean-reversion structure + information persistence
-- **Trading implication**: Volume can be partially predicted from recent history
-
-### Trading Strategy Potential
-1. **Statistical arbitrage**: Use ACF to fit ARMA model for volume forecasting
-2. **Market microstructure**: GB measures could identify:
-   - Regime changes (entropy spikes)
-   - Liquidity shocks (MI drops)
-   - Information asymmetry periods
-
-### Risk Considerations
-- **Sample period**: Single trading day (structural stability unknown)
-- **Time scale**: 1-second sampling matches high-frequency trading
-- **Depth**: K=1 (best prices only) - larger depths may show different patterns
+Interpretation:
+- The symbolic sequence shows very strong one-step predictability (`L=1`) for both BID and ASK.
+- Peak information is almost identical across sides.
 
 ---
 
-## 5. STATISTICAL EVIDENCE
+## 4. Cross-Method Conclusion
 
-### Significance Testing
+Both methods indicate strong serial dependence:
 
-**ACF Confidence Interval**: ±0.0085 (95%)  
-**All 50 tested lags exceed this threshold** → p-value < 0.001 for each lag
+- ACF confirms persistent linear dependence (high ACF(1), all 100 lags significant).
+- Garcin-Brouty confirms strong dependence in symbolic dynamics (high information at `L=1`).
 
-**Garcin-Brouty Robustness**:
-- Discretization using 10 bins (sufficient for 52K samples)
-- Entropy estimates converge (large sample size)
-- Information decay pattern consistent across both sides
-
-### Stability
-- BID and ASK show consistent patterns (correlation ρ = 0.97 between methods)
-- No anomalies in first 10 lags (where power is highest)
+Overall conclusion:
+- The volume process at 1-second resolution is not memoryless.
+- There is substantial short-horizon predictability in both sides of the book.
 
 ---
 
-## 6. TECHNICAL NOTES
+## 5. Output Files (Current Pipeline)
 
-### ACF Formula
-$$\hat{\rho}(k) = \frac{\sum_{t=1}^{n-k} (X_t - \bar{X})(X_{t+k} - \bar{X})}{\sum_{t=1}^{n} (X_t - \bar{X})^2}$$
+Generated by current scripts:
 
-### Information-Theoretic Measures
-$$I(X_t; X_{t+k}) = H(X_t) + H(X_{t+k}) - H(X_t, X_{t+k})$$
-
-$$H(X_{t+k} | X_t) = H(X_t, X_{t+k}) - H(X_t)$$
-
-$$\text{Transfer Entropy} = H(X_{t+k}) - H(X_{t+k} | X_t)$$
+1. `05_traditional_acf.png`
+2. `06_ljung_box_test.png`
+3. `07_gb_information_quantity.png`
+4. `08_gb_entropy_comparison.png`
+5. `09_gb_conditional_probs.png`
 
 ---
 
-## 7. RECOMMENDATIONS FOR FOLLOW-UP ANALYSIS
+## 6. Reproducibility
 
-1. **Extend time window**: Test on multiple trading days to assess stability
-2. **Vary time scales**: Repeat at 500ms, 100ms intervals for HFT perspective
-3. **Depth analysis**: Compare K=1, K=5, K=10 to understand depth effects
-4. **Regime detection**: Use entropy spikes to identify market stress periods
-5. **Causal analysis**: Apply Granger causality or transfer entropy to BID↔ASK
-6. **Prediction models**: Build ARMA(p,q) or VAR for volume forecasting
-
----
-
-## Generated Files
-
-1. `03_acf_comparison.png` - ACF plots with 95% confidence bounds
-2. `04_garcin_brouty_comparison.png` - Mutual information and conditional entropy
-3. `serial_dependence_analysis.py` - Complete implementation
-4. `run_serial_dependence_analysis.py` - Pipeline script
-
----
-
-**Analysis Date**: 2026-02-06  
-**Status**: ✓ COMPLETE
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python gamma_distribution_analysis/scripts/run_traditional_acf.py
+python gamma_distribution_analysis/scripts/run_garcin_brouty.py
+```
