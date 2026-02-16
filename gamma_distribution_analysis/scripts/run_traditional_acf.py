@@ -4,26 +4,42 @@ Focus: Queue Size Persistence in LOB
 """
 
 import numpy as np
+import pandas as pd
 from pathlib import Path
-import sys
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 ANALYSIS_ROOT = SCRIPT_DIR.parent
 PROJECT_ROOT = ANALYSIS_ROOT.parent
 RESULTS_DIR = ANALYSIS_ROOT / "results"
 
-sys.path.insert(0, str(PROJECT_ROOT / "orderbook_construction"))
-
-from lob_sample_construction import LOBSampleConstructor
 from traditional_acf_analysis import TraditionalACFAnalyzer
-from orderbook import iter_orderupdate_file
 
 
 # Configuration
-ORDERBOOK_FILE = "/Users/charles/Documents/Tâches/Mathématiques/EA/EA_recherche/euronextparis/EuronextParis/EuronextParis_20191001_FR0000120578/FR0000120578/OrderUpdate_20191001_FR0000120578.csv"
+SNAPSHOT_FILE = PROJECT_ROOT / "sanofi_book_snapshots_1s.parquet"
 
-MAX_DEPTH = 1  # K=1 (best bid/ask)
-TIME_STEP = 1_000_000_000  # 1 second
+
+def load_log_volumes_from_snapshot(snapshot_path: Path) -> tuple[np.ndarray, np.ndarray]:
+    """Load and construct log-volume samples directly from 1s snapshot parquet."""
+    if not snapshot_path.exists():
+        raise FileNotFoundError(f"Snapshot file not found: {snapshot_path}")
+
+    df = pd.read_parquet(snapshot_path)
+    required_cols = ["bidvolume1", "askvolume1"]
+    missing = [c for c in required_cols if c not in df.columns]
+    if missing:
+        raise ValueError(
+            f"Missing required columns in snapshot parquet: {missing}. "
+            f"Available columns: {list(df.columns)}"
+        )
+
+    bid_vol = pd.to_numeric(df["bidvolume1"], errors="coerce")
+    ask_vol = pd.to_numeric(df["askvolume1"], errors="coerce")
+
+    log_volumes_bid = np.log(bid_vol[bid_vol > 0].to_numpy(dtype=float))
+    log_volumes_ask = np.log(ask_vol[ask_vol > 0].to_numpy(dtype=float))
+
+    return log_volumes_bid, log_volumes_ask
 
 
 def main():
@@ -34,26 +50,10 @@ def main():
     print("Queue Size Persistence in Limit Order Book")
     print("="*70)
     
-    # [STEP 1] Construct LOB samples
-    print("\n[STEP 1] Constructing LOB log-volume samples...")
-    constructor = LOBSampleConstructor(ORDERBOOK_FILE, max_depth=MAX_DEPTH)
-    
-    # Scan for timestamp range
-    print("  Scanning data...")
-    min_time_ns = float('inf')
-    max_time_ns = float('-inf')
-    
-    for u in iter_orderupdate_file(ORDERBOOK_FILE):
-        min_time_ns = min(min_time_ns, u.event_time)
-        max_time_ns = max(max_time_ns, u.event_time)
-    
-    timestamps = np.arange(min_time_ns, max_time_ns, TIME_STEP)
-    print(f"  {len(timestamps):,} snapshots generated")
-    
-    # Construct samples
-    print(f"  Constructing samples...")
-    constructor.construct_samples(timestamps)
-    log_volumes_bid, log_volumes_ask = constructor.get_samples()
+    # [STEP 1] Load LOB samples from snapshot parquet
+    print("\n[STEP 1] Loading LOB log-volume samples from snapshot parquet...")
+    print(f"  Source: {SNAPSHOT_FILE}")
+    log_volumes_bid, log_volumes_ask = load_log_volumes_from_snapshot(SNAPSHOT_FILE)
     
     print(f"  ✓ Samples collected: BID={len(log_volumes_bid):,}, ASK={len(log_volumes_ask):,}")
     
