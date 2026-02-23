@@ -10,17 +10,21 @@
 
 ## 2. 顶层结构总览
 
-- `causal_zovko/`：Zovko 思路复现与因果发现流程（含独立 README 与 docs）
-- `Hawkes/`：Hawkes 过程建模、重标定检验与相关图表
-- `log_volume/`：订单簿体量（log volume）特征构建与分布分析
-- `orderbook_construction/`：订单簿重建、市场状态处理、可视化验证
-- `Trade/`：成交曲线、订单流与跳变分析
+- `causal_zovko/`：Zovko 思路复现与因果发现流程：主要目的是验证incoming limit order 的相对价格以及volatility的关系是不是因果关系
+- `Hawkes/`：Hawkes 过程建模、重标定检验与相关图表 证明Sanofi日频极端收益满足process Hawkes 但是主动买单和卖单的到达时间不符合（有可能是选用了指数核的原因 有文献表明power-law会更适合）
+- `log_volume/`：订单簿体量（log volume）特征构建与分布分析：验证gamma分布和序列相关性，平稳性检验，以及利用CIR预测
+- `orderbook_construction/`：订单簿重建、市场状态处理、可视化验证：相当于dataloader
+- `Trade/`：成交曲线、订单流与跳变分析：orderflow（signed volume）, imbalance_of 变点检测
 - `VIX_replicate/`：VIX 相关实验复现
 - `euronextparis/`：原始或半原始市场数据目录（体量较大）
 - `msc_decoded/`：解码/集合竞价 连续竞价时间计算
 - `Lectures/`：文献与课程阅读材料（PDF）
 - `_tmp_fitrs/`、`._tmp_pdftext/`：临时处理产物
-- 根目录零散 `*.ipynb/*.csv/*.parquet/*.png/*.mp4`：跨模块实验与导出结果
+- 根目录零散 `*.ipynb/*.csv/*.parquet/*.png/*.mp4`：跨模块实验与导出。
 
-更详细目录说明见：`docs/PROJECT_STRUCTURE.md`。
+
+## 3. 思路 23/02/2026
+- 先用KL-divergence 测imbalance_of, orderflow(icoming order 的相对价格), log_volume的变点(使用滚动kernel估计分布然后KL散度测量变点)
+- 发现orderflow有变点 想探究原因 (可以加一个hawkes对incoming order的建模+顺便把FIB讲了) 在Zovko的论文里发现volatility跟rlop有统计学上的相关性 想探究这个相关性是不是因果关系 -> CIT+PC算法 -> Granger(NNGC) 
+- 发现log_volume有变点 要探究原因 文献里说volume符合gamma分布-> 验证gamma 验证序列相关性 验证平稳性 使用CIR预测
 
