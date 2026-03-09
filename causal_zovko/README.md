@@ -45,12 +45,18 @@ All scripts now build default paths from `scripts/` to the project root (`EA_rec
   - pgmpy PC with custom CIT test and temporal constraints.
   - Save graph edges/adjacency and graph image.
 
+7. `scripts/nngc_permutation.py`
+  - NN-based Granger causality (MLP) with stepwise lagged feature inclusion.
+  - Uses permutation test at each step to keep only statistically significant improvements.
+  - Save `results/nngc_permutation_tests.csv`, `results/nngc_edges.csv`, `results/nngc_adjmatrix.csv`, `figures/nngc_graph.png`.
+
 ## Suggested run order
 1) `build_rlop_vol.py`  
 2) `build_multivariate_features.py`  
 3) `build_causal_dataset.py`  
 4) `zovko_xcf.py`  
 5) `pc_cit.py` or `pc_cit_package.py`
+6) `nngc_permutation.py`
 
 ## Notes on relative paths
 - If you run scripts from anywhere inside the workspace, defaults still resolve correctly.

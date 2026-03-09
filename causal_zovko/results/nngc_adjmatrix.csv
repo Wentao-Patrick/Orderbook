@@ -1,0 +1,4 @@
+,imb_of,imbalance_ob_mean,rlop_ask_mean
+imbalance_ob_mean_lag2,1,0,0
+rlop_bid_mean_lag2,0,0,1
+vol_ask_mean_lag2,0,1,0

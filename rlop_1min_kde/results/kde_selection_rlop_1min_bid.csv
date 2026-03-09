@@ -1,0 +1,2 @@
+side,input_csv,value_col,n_total,reference_points,reference_start,reference_end,dynamic_start,h_star,omega_star,objective_d_nu,nu_requested,nu_effective,calib_t0,grid_size,h_grid_size,omega_grid_size,kl_step_points
+bid,C:\Users\Wentao\Desktop\EA_recherche\causal_zovko\data\rlop_bid_1min.csv,delta_mean,510,60,2019-10-01T09:00:00+02:00,2019-10-01T09:59:00+02:00,2019-10-01T10:00:00+02:00,0.01468690198470603,0.9001,0.8428752868598138,10,10,19,256,12,12,1

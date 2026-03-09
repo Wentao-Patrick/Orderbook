@@ -27,7 +27,9 @@ CAUSAL_ZOVKO_DIR = SCRIPT_DIR.parent
 
 VARS_LIST = [
     "rlop_ask_mean","rlop_bid_mean","vol_bid_mean","vol_ask_mean","spread_mean","imbalance_ob_mean","imb_of",
-    "rlop_ask_mean_lag1","rlop_bid_mean_lag1","vol_bid_mean_lag1","vol_ask_mean_lag1","spread_mean_lag1","imbalance_ob_mean_lag1","imb_of_lag1"
+    "rlop_ask_mean_lag1","rlop_bid_mean_lag1","vol_bid_mean_lag1","vol_ask_mean_lag1","spread_mean_lag1","imbalance_ob_mean_lag1","imb_of_lag1",
+    "rlop_ask_mean_lag2","rlop_bid_mean_lag2","vol_bid_mean_lag2","vol_ask_mean_lag2","spread_mean_lag2","imbalance_ob_mean_lag2","imb_of_lag2",
+    "rlop_ask_mean_lag5","rlop_bid_mean_lag5","vol_bid_mean_lag5","vol_ask_mean_lag5","spread_mean_lag5","imbalance_ob_mean_lag5","imb_of_lag5",
 ]
 
 def rank_uniform(x):
@@ -46,6 +48,10 @@ def parse_lag(name: str) -> int:
     if m:
         return int(m.group(1))
     return 0
+
+
+def base_name(name: str) -> str:
+    return re.sub(r"_lag\d+\b", "", name)
 
 
 # -----------------------------
@@ -491,67 +497,308 @@ def draw_graph_from_dir_adj(nodes, dir_adj, title, out_path):
     nodes2 = [nodes[i] for i in keep_idx]
     dir_adj2 = dir_adj[np.ix_(keep_idx, keep_idx)]
     m = len(nodes2)
+    lags2 = [parse_lag(x) for x in nodes2]
 
-    # ---- 2) circular layout on remaining nodes ----
-    theta = np.linspace(0, 2 * np.pi, m, endpoint=False)
-    pos = {nodes2[i]: (np.cos(theta[i]), np.sin(theta[i])) for i in range(m)}
+    # ---- 2) layered layout: causes (larger lag, more past) on top ----
+    # deterministic node ordering in each layer for readability
+    def base_name(name: str) -> str:
+        return re.sub(r"_lag\d+\b", "", name)
 
-    plt.figure(figsize=(10, 10))
-    node_size = 3500
+    unique_lags = sorted(set(lags2), reverse=True)
+    layers = {}
+    for L in unique_lags:
+        idxs = [i for i in range(m) if lags2[i] == L]
+        idxs = sorted(idxs, key=lambda i: (base_name(nodes2[i]), nodes2[i]))
+        layers[L] = idxs
+
+    x_gap = 2.0
+    y_gap = 1.8
+    pos_idx = {}
+    for layer_rank, L in enumerate(unique_lags):
+        idxs = layers[L]
+        k = len(idxs)
+        if k == 1:
+            xs = np.array([0.0])
+        else:
+            xs = np.linspace(-(k - 1) / 2.0, (k - 1) / 2.0, k) * x_gap
+        y = (len(unique_lags) - 1 - layer_rank) * y_gap
+        for p_i, idx in enumerate(idxs):
+            pos_idx[idx] = (float(xs[p_i]), float(y))
+
+    # keep labels short and explicit
+    labels = {}
+    for i, node in enumerate(nodes2):
+        b = base_name(node)
+        L = lags2[i]
+        labels[i] = f"{b}\nlag{L}"
+
+    fig_w = max(11.0, 2.2 * max(len(v) for v in layers.values()))
+    fig_h = max(7.0, 2.4 * len(unique_lags))
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    node_size = 4200
     node_radius_pts = float(np.sqrt(node_size / np.pi))
-    arrow_shrink = node_radius_pts + 7.0
+    arrow_shrink = node_radius_pts + 5.0
+
+    # subtle layer guides
+    for layer_rank, L in enumerate(unique_lags):
+        y = (len(unique_lags) - 1 - layer_rank) * y_gap
+        ax.axhline(y=y, color="#E6E6E6", lw=0.9, zorder=0)
+        ax.text(
+            x=-0.35 - 0.5 * x_gap * max(len(v) for v in layers.values()),
+            y=y + 0.16,
+            s=f"lag{L}",
+            fontsize=9,
+            color="#555555",
+            ha="left",
+            va="bottom",
+            zorder=0,
+        )
 
     # ---- 3) draw edges once per unordered pair ----
     for i in range(m):
         for j in range(i + 1, m):
-            a, b = nodes2[i], nodes2[j]
-            x1, y1 = pos[a]
-            x2, y2 = pos[b]
+            x1, y1 = pos_idx[i]
+            x2, y2 = pos_idx[j]
+            same_layer = (lags2[i] == lags2[j])
+            # deterministic mild curvature for readability
+            sign = 1.0 if ((i + j) % 2 == 0) else -1.0
+            base_rad = 0.16 if same_layer else 0.08
+            rad = sign * base_rad
 
             if dir_adj2[i, j] == 2 and dir_adj2[j, i] == 0:
-                # i -> j
-                plt.annotate(
-                    "", xy=(x2, y2), xytext=(x1, y1),
+                ax.annotate(
+                    "",
+                    xy=(x2, y2),
+                    xytext=(x1, y1),
                     arrowprops=dict(
                         arrowstyle="-|>",
-                        mutation_scale=24,
+                        mutation_scale=20,
                         lw=2.0,
-                        color="tab:red",
+                        color="#D64550",
                         shrinkA=arrow_shrink,
                         shrinkB=arrow_shrink,
+                        connectionstyle=f"arc3,rad={rad}",
                     ),
-                    zorder=5,
+                    zorder=2,
                 )
             elif dir_adj2[j, i] == 2 and dir_adj2[i, j] == 0:
-                # j -> i
-                plt.annotate(
-                    "", xy=(x1, y1), xytext=(x2, y2),
+                ax.annotate(
+                    "",
+                    xy=(x1, y1),
+                    xytext=(x2, y2),
                     arrowprops=dict(
                         arrowstyle="-|>",
-                        mutation_scale=24,
+                        mutation_scale=20,
                         lw=2.0,
-                        color="tab:red",
+                        color="#D64550",
                         shrinkA=arrow_shrink,
                         shrinkB=arrow_shrink,
+                        connectionstyle=f"arc3,rad={-rad}",
                     ),
-                    zorder=5,
+                    zorder=2,
                 )
             elif dir_adj2[i, j] == 1 and dir_adj2[j, i] == 1:
-                # undirected
-                plt.plot([x1, x2], [y1, y2], color="gray", lw=1.0, zorder=1)
+                ax.annotate(
+                    "",
+                    xy=(x2, y2),
+                    xytext=(x1, y1),
+                    arrowprops=dict(
+                        arrowstyle="-",
+                        lw=1.25,
+                        color="#7F7F7F",
+                        alpha=0.95,
+                        shrinkA=arrow_shrink,
+                        shrinkB=arrow_shrink,
+                        connectionstyle=f"arc3,rad={0.6 * rad}",
+                    ),
+                    zorder=1,
+                )
 
     # ---- 4) draw nodes ----
-    for node, (x, y) in pos.items():
-        plt.scatter([x], [y], s=node_size, color="skyblue", edgecolor="black", zorder=3)
-        plt.text(x, y, node, ha="center", va="center", fontsize=9, weight="bold", zorder=4)
+    cmap = plt.cm.Blues
+    lag_rank = {L: r for r, L in enumerate(unique_lags)}
+    denom = max(1, len(unique_lags) - 1)
+    for i in range(m):
+        x, y = pos_idx[i]
+        L = lags2[i]
+        c = cmap(0.35 + 0.5 * (lag_rank[L] / denom))
+        ax.scatter([x], [y], s=node_size, color=c, edgecolor="#1F1F1F", linewidth=1.1, zorder=3)
+        ax.text(x, y, labels[i], ha="center", va="center", fontsize=9, weight="bold", zorder=4)
 
-    plt.title(title, fontsize=14)
-    plt.axis("off")
+    ax.set_title(title + "\n(cause on top, effect on bottom)", fontsize=14, pad=14)
+    ax.axis("off")
+    ax.set_aspect("equal", adjustable="datalim")
     plt.tight_layout()
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_path, dpi=170)
+    plt.savefig(out_path, dpi=190, bbox_inches="tight", facecolor="white")
     plt.close()
     print(f"Saved graph image to: {out_path} (nodes drawn: {m}/{n}, isolated removed: {n-m})")
+
+
+def collapse_to_variable_graph(cols, dir_adj, *, drop_self: bool = False):
+    """
+    Collapse lag-level directed edges into variable-level directed edges.
+    Rule: if ANY directed edge between lagged nodes indicates A -> B, then keep variable edge A -> B.
+    """
+    cols = list(cols)
+    dir_adj = np.asarray(dir_adj)
+    n = len(cols)
+
+    base_vars = []
+    seen = set()
+    for c in cols:
+        b = base_name(c)
+        if b not in seen:
+            seen.add(b)
+            base_vars.append(b)
+
+    var_index = {v: i for i, v in enumerate(base_vars)}
+    var_adj = np.zeros((len(base_vars), len(base_vars)), dtype=int)
+    edges_set = set()
+
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                continue
+            if not (dir_adj[i, j] == 2 and dir_adj[j, i] == 0):
+                continue
+
+            src = base_name(cols[i])
+            dst = base_name(cols[j])
+            if drop_self and src == dst:
+                continue
+            edges_set.add((src, dst))
+
+    edges = []
+    for src, dst in sorted(edges_set):
+        var_adj[var_index[src], var_index[dst]] = 1
+        edges.append({"from": src, "to": dst, "type": "directed"})
+
+    return base_vars, var_adj, edges
+
+
+def draw_variable_causal_graph_lr(
+    edges_df: pd.DataFrame,
+    title: str,
+    out_path: str,
+    all_nodes=None,
+):
+    """
+    Draw variable-level causal graph with each variable shown once.
+    Layout:
+      left   : source-like nodes (out>0, in=0)
+      middle : mixed / isolated nodes
+      right  : sink-like nodes (in>0, out=0)
+    """
+    if all_nodes is None:
+        if edges_df.empty:
+            all_nodes = []
+        else:
+            all_nodes = sorted(set(edges_df["from"]).union(set(edges_df["to"])))
+    else:
+        all_nodes = sorted(list(all_nodes))
+
+    if len(all_nodes) == 0:
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.axis("off")
+        ax.text(0.5, 0.5, "No variables to draw", ha="center", va="center", fontsize=12)
+        fig.tight_layout()
+        Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_path, dpi=180)
+        plt.close(fig)
+        print(f"Saved graph image to: {out_path} (no variables)")
+        return
+
+    out_deg = {n: 0 for n in all_nodes}
+    in_deg = {n: 0 for n in all_nodes}
+    for _, row in edges_df.iterrows():
+        src = str(row["from"])
+        dst = str(row["to"])
+        if src in out_deg:
+            out_deg[src] += 1
+        if dst in in_deg:
+            in_deg[dst] += 1
+
+    left_nodes = sorted([n for n in all_nodes if out_deg[n] > 0 and in_deg[n] == 0])
+    right_nodes = sorted([n for n in all_nodes if in_deg[n] > 0 and out_deg[n] == 0])
+    middle_nodes = sorted([n for n in all_nodes if n not in left_nodes and n not in right_nodes])
+
+    def spread_y(k):
+        if k <= 1:
+            return np.array([0.5]) if k == 1 else np.array([])
+        return np.linspace(1.0, 0.0, k)
+
+    pos = {}
+    for i, node in enumerate(left_nodes):
+        pos[node] = (0.1, float(spread_y(len(left_nodes))[i]))
+    for i, node in enumerate(middle_nodes):
+        pos[node] = (0.5, float(spread_y(len(middle_nodes))[i]))
+    for i, node in enumerate(right_nodes):
+        pos[node] = (0.9, float(spread_y(len(right_nodes))[i]))
+
+    fig_h = max(6.0, 0.34 * len(all_nodes))
+    fig, ax = plt.subplots(figsize=(14, fig_h))
+    ax.axis("off")
+
+    for node in left_nodes:
+        x, y = pos[node]
+        ax.scatter(x, y, s=1500, c="#E3F2FD", edgecolors="#1E88E5", linewidths=1.2, zorder=3)
+        ax.text(x, y, node, ha="center", va="center", fontsize=9)
+    for node in middle_nodes:
+        x, y = pos[node]
+        ax.scatter(x, y, s=1500, c="#E8F5E9", edgecolors="#2E7D32", linewidths=1.2, zorder=3)
+        ax.text(x, y, node, ha="center", va="center", fontsize=9)
+    for node in right_nodes:
+        x, y = pos[node]
+        ax.scatter(x, y, s=1500, c="#FFF3E0", edgecolors="#FB8C00", linewidths=1.2, zorder=3)
+        ax.text(x, y, node, ha="center", va="center", fontsize=9)
+
+    for _, row in edges_df.iterrows():
+        src = str(row["from"])
+        dst = str(row["to"])
+        if src not in pos or dst not in pos:
+            continue
+        x0, y0 = pos[src]
+        x1, y1 = pos[dst]
+        if src == dst:
+            ax.annotate(
+                "",
+                xy=(x0 - 0.03, y0 + 0.02),
+                xytext=(x0 + 0.03, y0 + 0.02),
+                arrowprops=dict(
+                    arrowstyle="->",
+                    lw=1.7,
+                    color="#616161",
+                    alpha=0.9,
+                    connectionstyle="arc3,rad=1.4",
+                ),
+                zorder=2,
+            )
+            continue
+
+        ax.annotate(
+            "",
+            xy=(x1, y1),
+            xytext=(x0, y0),
+            arrowprops=dict(
+                arrowstyle="->",
+                lw=1.7,
+                color="#616161",
+                alpha=0.85,
+                connectionstyle="arc3,rad=0.06",
+            ),
+            zorder=2,
+        )
+
+    ax.text(0.1, 1.06, "Causes", ha="center", va="bottom", fontsize=11, color="#0D47A1")
+    ax.text(0.5, 1.06, "Mixed/Neutral", ha="center", va="bottom", fontsize=11, color="#1B5E20")
+    ax.text(0.9, 1.06, "Effects", ha="center", va="bottom", fontsize=11, color="#E65100")
+    ax.set_title(title, fontsize=13)
+    fig.tight_layout()
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=190, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    print(f"Saved graph image to: {out_path} (variables={len(all_nodes)}, edges={len(edges_df)})")
 
 
 # -----------------------------
@@ -587,28 +834,19 @@ def main():
         df, alpha=args.alpha, max_cond_set=args.max_cond, sims=args.sims, seed=args.seed
     )
 
-    # edges list from dir_adj
-    edges = []
-    n = len(cols)
-    for i in range(n):
-        for j in range(i + 1, n):
-            if dir_adj[i, j] == 2 and dir_adj[j, i] == 0:
-                edges.append({"from": cols[i], "to": cols[j], "type": "directed"})
-            elif dir_adj[j, i] == 2 and dir_adj[i, j] == 0:
-                edges.append({"from": cols[j], "to": cols[i], "type": "directed"})
-            elif dir_adj[i, j] == 1 and dir_adj[j, i] == 1:
-                edges.append({"from": cols[i], "to": cols[j], "type": "undirected"})
+    # Collapse lag-level graph to variable-level graph.
+    base_vars, var_adj, edges = collapse_to_variable_graph(cols, dir_adj, drop_self=False)
 
     Path(args.out_edges).parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(edges).to_csv(args.out_edges, index=False)
 
     Path(args.out_adj).parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(adj, index=cols, columns=cols).to_csv(args.out_adj)
+    pd.DataFrame(var_adj, index=base_vars, columns=base_vars).to_csv(args.out_adj)
 
     print("saved:", args.out_edges, args.out_adj)
 
-    title = f"PC Graph (no same-layer; alpha={args.alpha}, max_cond={args.max_cond})"
-    draw_graph_from_dir_adj(cols, dir_adj, title, args.out_png)
+    title = f"PC Variable Causal Graph (cause left -> effect right; alpha={args.alpha}, max_cond={args.max_cond})"
+    draw_variable_causal_graph_lr(pd.DataFrame(edges), title, args.out_png, all_nodes=base_vars)
 
 
 if __name__ == "__main__":

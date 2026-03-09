@@ -23,3 +23,7 @@
 ## pc_cit_package.py
 - Purpose: pgmpy PC backend with custom CIT test and expert knowledge constraints.
 - Main outputs: `results/pc_edges.csv`, `results/pc_adjmatrix.csv`, `figures/pc_graph.png`.
+
+## nngc_permutation.py
+- Purpose: NN-based Granger causality (MLP) with forward feature addition and permutation significance test for each candidate.
+- Main outputs: `results/nngc_permutation_tests.csv`, `results/nngc_edges.csv`, `results/nngc_adjmatrix.csv`, `figures/nngc_graph.png`.

@@ -1,0 +1,3 @@
+side,k,sum_name,log_name,k_shape,theta_scale,ks_stat,ks_pvalue,n_fit,hourly_plot,full_day_plot
+bid,5,bidvolume1_to_5_sum,log_bidvolume1_to_5_sum,525.3874188101797,0.015472404023494825,0.05983782618741479,1.2511888326225018e-95,30582,C:\Users\Wentao\Desktop\EA_recherche\log_volume\results\log_bidvolume1_to_5_sum_hist_by_hour.png,C:\Users\Wentao\Desktop\EA_recherche\log_volume\results\log_bidvolume1_to_5_sum_hist_full_day.png
+ask,5,askvolume1_to_5_sum,log_askvolume1_to_5_sum,488.0026325960358,0.01678605871276636,0.09575437582629509,1.663739897949841e-244,30582,C:\Users\Wentao\Desktop\EA_recherche\log_volume\results\log_askvolume1_to_5_sum_hist_by_hour.png,C:\Users\Wentao\Desktop\EA_recherche\log_volume\results\log_askvolume1_to_5_sum_hist_full_day.png

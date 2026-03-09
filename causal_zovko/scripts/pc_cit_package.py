@@ -15,7 +15,6 @@ import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from pgmpy.estimators import PC, ExpertKnowledge
 
 
@@ -45,7 +44,8 @@ class PCSafe(PC):
 
 VARS_LIST = [
     "rlop_ask_mean","rlop_bid_mean","vol_bid_mean","vol_ask_mean","spread_mean","imbalance_ob_mean","imb_of",
-    "rlop_ask_mean_lag1","rlop_bid_mean_lag1","vol_bid_mean_lag1","vol_ask_mean_lag1","spread_mean_lag1","imbalance_ob_mean_lag1","imb_of_lag1"
+    "rlop_ask_mean_lag1","rlop_bid_mean_lag1","vol_bid_mean_lag1","vol_ask_mean_lag1","spread_mean_lag1","imbalance_ob_mean_lag1","imb_of_lag1",
+    "rlop_ask_mean_lag2","rlop_bid_mean_lag2","vol_bid_mean_lag2","vol_ask_mean_lag2","spread_mean_lag2","imbalance_ob_mean_lag2","imb_of_lag2"
 ]
 
 
@@ -202,65 +202,137 @@ def draw_graph_from_dir_adj(nodes, dir_adj, title, out_path):
     nodes2 = [nodes[i] for i in keep_idx]
     dir_adj2 = dir_adj[np.ix_(keep_idx, keep_idx)]
     m = len(nodes2)
+    lags2 = [parse_lag(x) for x in nodes2]
 
-    # ---- 2) circular layout on remaining nodes ----
-    theta = np.linspace(0, 2 * np.pi, m, endpoint=False)
-    pos = {nodes2[i]: (np.cos(theta[i]), np.sin(theta[i])) for i in range(m)}
+    # ---- 2) layered layout: causes (larger lag, more past) on top ----
+    def base_name(name: str) -> str:
+        return re.sub(r"_lag\d+\b", "", name)
 
-    plt.figure(figsize=(10, 10))
-    node_size = 3500
+    unique_lags = sorted(set(lags2), reverse=True)
+    layers = {}
+    for L in unique_lags:
+        idxs = [i for i in range(m) if lags2[i] == L]
+        idxs = sorted(idxs, key=lambda i: (base_name(nodes2[i]), nodes2[i]))
+        layers[L] = idxs
+
+    x_gap = 2.0
+    y_gap = 1.8
+    pos_idx = {}
+    for layer_rank, L in enumerate(unique_lags):
+        idxs = layers[L]
+        k = len(idxs)
+        if k == 1:
+            xs = np.array([0.0])
+        else:
+            xs = np.linspace(-(k - 1) / 2.0, (k - 1) / 2.0, k) * x_gap
+        y = (len(unique_lags) - 1 - layer_rank) * y_gap
+        for p_i, idx in enumerate(idxs):
+            pos_idx[idx] = (float(xs[p_i]), float(y))
+
+    labels = {}
+    for i, node in enumerate(nodes2):
+        b = base_name(node)
+        L = lags2[i]
+        labels[i] = f"{b}\nlag{L}"
+
+    fig_w = max(11.0, 2.2 * max(len(v) for v in layers.values()))
+    fig_h = max(7.0, 2.4 * len(unique_lags))
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    node_size = 4200
     node_radius_pts = float(np.sqrt(node_size / np.pi))
-    arrow_shrink = node_radius_pts + 7.0
+    arrow_shrink = node_radius_pts + 5.0
+
+    # subtle layer guides
+    for layer_rank, L in enumerate(unique_lags):
+        y = (len(unique_lags) - 1 - layer_rank) * y_gap
+        ax.axhline(y=y, color="#E6E6E6", lw=0.9, zorder=0)
+        ax.text(
+            x=-0.35 - 0.5 * x_gap * max(len(v) for v in layers.values()),
+            y=y + 0.16,
+            s=f"lag{L}",
+            fontsize=9,
+            color="#555555",
+            ha="left",
+            va="bottom",
+            zorder=0,
+        )
 
     # ---- 3) draw edges once per unordered pair ----
     for i in range(m):
         for j in range(i + 1, m):
-            a, b = nodes2[i], nodes2[j]
-            x1, y1 = pos[a]
-            x2, y2 = pos[b]
+            x1, y1 = pos_idx[i]
+            x2, y2 = pos_idx[j]
+            same_layer = (lags2[i] == lags2[j])
+            sign = 1.0 if ((i + j) % 2 == 0) else -1.0
+            base_rad = 0.16 if same_layer else 0.08
+            rad = sign * base_rad
 
             if dir_adj2[i, j] == 2 and dir_adj2[j, i] == 0:
-                # i -> j
-                plt.annotate(
-                    "", xy=(x2, y2), xytext=(x1, y1),
+                ax.annotate(
+                    "",
+                    xy=(x2, y2),
+                    xytext=(x1, y1),
                     arrowprops=dict(
                         arrowstyle="-|>",
-                        mutation_scale=24,
+                        mutation_scale=20,
                         lw=2.0,
-                        color="tab:red",
+                        color="#D64550",
                         shrinkA=arrow_shrink,
                         shrinkB=arrow_shrink,
+                        connectionstyle=f"arc3,rad={rad}",
                     ),
-                    zorder=5,
+                    zorder=2,
                 )
             elif dir_adj2[j, i] == 2 and dir_adj2[i, j] == 0:
-                # j -> i
-                plt.annotate(
-                    "", xy=(x1, y1), xytext=(x2, y2),
+                ax.annotate(
+                    "",
+                    xy=(x1, y1),
+                    xytext=(x2, y2),
                     arrowprops=dict(
                         arrowstyle="-|>",
-                        mutation_scale=24,
+                        mutation_scale=20,
                         lw=2.0,
-                        color="tab:red",
+                        color="#D64550",
                         shrinkA=arrow_shrink,
                         shrinkB=arrow_shrink,
+                        connectionstyle=f"arc3,rad={-rad}",
                     ),
-                    zorder=5,
+                    zorder=2,
                 )
             elif dir_adj2[i, j] == 1 and dir_adj2[j, i] == 1:
-                # undirected
-                plt.plot([x1, x2], [y1, y2], color="gray", lw=1.0, zorder=1)
+                ax.annotate(
+                    "",
+                    xy=(x2, y2),
+                    xytext=(x1, y1),
+                    arrowprops=dict(
+                        arrowstyle="-",
+                        lw=1.25,
+                        color="#7F7F7F",
+                        alpha=0.95,
+                        shrinkA=arrow_shrink,
+                        shrinkB=arrow_shrink,
+                        connectionstyle=f"arc3,rad={0.6 * rad}",
+                    ),
+                    zorder=1,
+                )
 
     # ---- 4) draw nodes ----
-    for node, (x, y) in pos.items():
-        plt.scatter([x], [y], s=node_size, color="skyblue", edgecolor="black", zorder=3)
-        plt.text(x, y, node, ha="center", va="center", fontsize=9, weight="bold", zorder=4)
+    cmap = plt.cm.Blues
+    lag_rank = {L: r for r, L in enumerate(unique_lags)}
+    denom = max(1, len(unique_lags) - 1)
+    for i in range(m):
+        x, y = pos_idx[i]
+        L = lags2[i]
+        c = cmap(0.35 + 0.5 * (lag_rank[L] / denom))
+        ax.scatter([x], [y], s=node_size, color=c, edgecolor="#1F1F1F", linewidth=1.1, zorder=3)
+        ax.text(x, y, labels[i], ha="center", va="center", fontsize=9, weight="bold", zorder=4)
 
-    plt.title(title, fontsize=14)
-    plt.axis("off")
+    ax.set_title(title + "\n(cause on top, effect on bottom)", fontsize=14, pad=14)
+    ax.axis("off")
+    ax.set_aspect("equal", adjustable="datalim")
     plt.tight_layout()
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_path, dpi=170)
+    plt.savefig(out_path, dpi=190, bbox_inches="tight", facecolor="white")
     plt.close()
     print(f"Saved graph image to: {out_path} (nodes drawn: {m}/{n}, isolated removed: {n-m})")
 
