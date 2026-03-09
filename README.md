@@ -25,6 +25,6 @@
 更详细目录说明见：`docs/PROJECT_STRUCTURE.md`。
 
 ## 3. Rapport思路 23/02/2026
-- 先用KL-divergence 测imbalance_of, orderflow(icoming order 的相对价格), log_volume的变点(使用滚动kernel估计分布然后KL散度测量变点)
+- 先用KL-divergence 测imbalance_of, orderflow(rlop, rolling kernel+ kl散度检测变点), log_volume的变点(使用滚动kernel估计分布然后KL散度测量变点)
 - 发现orderflow有变点 想探究原因 (可以加一个hawkes对incoming order的建模+顺便把FIB讲了) 在Zovko的论文里发现volatility跟rlop有统计学上的相关性 想探究这个相关性是不是因果关系 -> CIT+PC算法 -> Granger(NNGC) 
 - 发现log_volume有变点 要探究原因 文献里说volume符合gamma分布-> 验证gamma 验证序列相关性 验证平稳性 使用CIR预测
