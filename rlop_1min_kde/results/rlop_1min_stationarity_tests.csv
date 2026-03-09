@@ -1,0 +1,29 @@
+side,transform,series_name,sample_size,mean,std,alpha,reject_null,test,regression,statistic,p_value,used_lags,nobs,icbest,critical_1pct,critical_5pct,critical_10pct,warning,null_hypothesis,verdict_constant,verdict_trend
+bid,level,rlop_bid_mean_1min,510,0.08012757176424704,0.11923832080410075,0.05,False,ADF,c,-1.6105984128207047,0.47766150177657263,1,508,-720.8590488933353,-3.44328828958775,-2.8672462791357867,-2.569809231353463,,unit root (non-stationary),inconclusive,inconclusive
+bid,level,rlop_bid_mean_1min,510,0.08012757176424704,0.11923832080410075,0.05,False,ADF,ct,-1.1158358235068204,0.9263746620218594,1,508,-720.744971265023,-3.976702245042492,-3.419167880366489,-3.1321551438988706,,unit root (non-stationary),inconclusive,inconclusive
+bid,level,rlop_bid_mean_1min,510,0.08012757176424704,0.11923832080410075,0.05,False,KPSS,c,0.15662376671788045,0.1,5,510,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",stationary around a constant,inconclusive,inconclusive
+bid,level,rlop_bid_mean_1min,510,0.08012757176424704,0.11923832080410075,0.05,False,KPSS,ct,0.12106527813516932,0.09617541086079755,4,510,,0.216,0.146,0.119,,trend-stationary,inconclusive,inconclusive
+bid,diff1,rlop_bid_mean_1min,509,0.004614800553982242,0.12653547248721214,0.05,True,ADF,c,-22.378247646910715,0.0,0,508,-718.5613132590856,-3.44328828958775,-2.8672462791357867,-2.569809231353463,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+bid,diff1,rlop_bid_mean_1min,509,0.004614800553982242,0.12653547248721214,0.05,True,ADF,ct,-22.435281062112814,0.0,0,508,-719.4263117430364,-3.976702245042492,-3.419167880366489,-3.1321551438988706,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+bid,diff1,rlop_bid_mean_1min,509,0.004614800553982242,0.12653547248721214,0.05,False,KPSS,c,0.3412824017288849,0.1,1,509,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",stationary around a constant,evidence supports stationarity,evidence supports stationarity
+bid,diff1,rlop_bid_mean_1min,509,0.004614800553982242,0.12653547248721214,0.05,False,KPSS,ct,0.12684110838898127,0.08547942890929393,1,509,,0.216,0.146,0.119,,trend-stationary,evidence supports stationarity,evidence supports stationarity
+ask,level,rlop_ask_mean_1min,510,0.1013059214482828,0.13739990291999551,0.05,True,ADF,c,-3.9008864118308946,0.002028333279343772,2,507,-587.2254984904528,-3.4433139398425348,-2.867257567756961,-2.5698152474041915,,unit root (non-stationary),mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,level,rlop_ask_mean_1min,510,0.1013059214482828,0.13739990291999551,0.05,True,ADF,ct,-7.422092757765582,1.5392626566838197e-09,0,509,-588.4146826779952,-3.9766667946928385,-3.419150761473896,-3.132145083655559,,unit root (non-stationary),mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,level,rlop_ask_mean_1min,510,0.1013059214482828,0.13739990291999551,0.05,True,KPSS,c,1.4201755578108584,0.01,7,510,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is smaller than the p-value returned.
+",stationary around a constant,mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,level,rlop_ask_mean_1min,510,0.1013059214482828,0.13739990291999551,0.05,True,KPSS,ct,0.5042397092174137,0.01,5,510,,0.216,0.146,0.119,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is smaller than the p-value returned.
+",trend-stationary,mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,diff1,rlop_ask_mean_1min,509,0.0048043758789869835,0.14097360103868464,0.05,True,ADF,c,-8.265135169879182,4.961764884132655e-13,4,504,-574.710211180211,-3.443391504492468,-2.8672917032172953,-2.5698334393109095,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+ask,diff1,rlop_ask_mean_1min,509,0.0048043758789869835,0.14097360103868464,0.05,True,ADF,ct,-8.365581733779585,1.0227774607320834e-11,4,504,-575.773724129263,-3.976845462099063,-3.4192370380912136,-3.132195785323609,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+ask,diff1,rlop_ask_mean_1min,509,0.0048043758789869835,0.14097360103868464,0.05,False,KPSS,c,0.3246486536569447,0.1,4,509,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",stationary around a constant,evidence supports stationarity,evidence supports stationarity
+ask,diff1,rlop_ask_mean_1min,509,0.0048043758789869835,0.14097360103868464,0.05,False,KPSS,ct,0.1172538867983362,0.1,4,509,,0.216,0.146,0.119,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",trend-stationary,evidence supports stationarity,evidence supports stationarity

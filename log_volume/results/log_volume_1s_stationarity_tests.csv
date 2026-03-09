@@ -1,0 +1,33 @@
+side,transform,series_name,sample_size,mean,std,alpha,reject_null,test,regression,statistic,p_value,used_lags,nobs,icbest,critical_1pct,critical_5pct,critical_10pct,warning,null_hypothesis,verdict_constant,verdict_trend
+bid,level,log_bidvolume1,30582,5.6479262375026265,1.0243383354658588,0.05,True,ADF,c,-19.206676043647846,0.0,39,30542,60314.22704587489,-3.430564126438641,-2.8616346381596394,-2.5668203729936385,,unit root (non-stationary),mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+bid,level,log_bidvolume1,30582,5.6479262375026265,1.0243383354658588,0.05,True,ADF,ct,-20.35611029656804,0.0,39,30542,60271.28424268289,-3.959066445253345,-3.410633759279141,-3.127134661401858,,unit root (non-stationary),mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+bid,level,log_bidvolume1,30582,5.6479262375026265,1.0243383354658588,0.05,True,KPSS,c,5.258708893265867,0.01,85,30582,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is smaller than the p-value returned.
+",stationary around a constant,mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+bid,level,log_bidvolume1,30582,5.6479262375026265,1.0243383354658588,0.05,True,KPSS,ct,0.37861335256905426,0.01,84,30582,,0.216,0.146,0.119,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is smaller than the p-value returned.
+",trend-stationary,mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+bid,diff1,log_bidvolume1,30581,-0.00011851610257926083,0.696378523239061,0.05,True,ADF,c,-37.49627345243006,0.0,51,30529,60626.36969991028,-3.43056421762662,-2.861634678460833,-2.566820394444983,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+bid,diff1,log_bidvolume1,30581,-0.00011851610257926083,0.696378523239061,0.05,True,ADF,ct,-37.495614721207545,0.0,51,30529,60628.368458494384,-3.9590665715000206,-3.4106338204995104,-3.127134697454561,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+bid,diff1,log_bidvolume1,30581,-0.00011851610257926083,0.696378523239061,0.05,False,KPSS,c,0.0225982423672142,0.1,255,30581,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",stationary around a constant,evidence supports stationarity,evidence supports stationarity
+bid,diff1,log_bidvolume1,30581,-0.00011851610257926083,0.696378523239061,0.05,False,KPSS,ct,0.012273203659244003,0.1,255,30581,,0.216,0.146,0.119,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",trend-stationary,evidence supports stationarity,evidence supports stationarity
+ask,level,log_askvolume1,30582,5.794033284113295,0.9737923267308969,0.05,True,ADF,c,-20.965991206769942,0.0,37,30544,57815.47162757606,-3.430564112416611,-2.8616346319625006,-2.5668203696950527,,unit root (non-stationary),mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,level,log_askvolume1,30582,5.794033284113295,0.9737923267308969,0.05,True,ADF,ct,-22.21793816893747,0.0,36,30545,57779.28763478254,-3.9590664161347586,-3.4106337451587643,-3.127134653086362,,unit root (non-stationary),mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,level,log_askvolume1,30582,5.794033284113295,0.9737923267308969,0.05,True,KPSS,c,4.783035230457878,0.01,84,30582,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is smaller than the p-value returned.
+",stationary around a constant,mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,level,log_askvolume1,30582,5.794033284113295,0.9737923267308969,0.05,True,KPSS,ct,0.7293026184983452,0.01,84,30582,,0.216,0.146,0.119,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is smaller than the p-value returned.
+",trend-stationary,mixed: likely structural change or time-varying moments,mixed: likely structural change or time-varying moments
+ask,diff1,log_askvolume1,30581,3.232763459186314e-05,0.6706834079701078,0.05,True,ADF,c,-37.78081727015798,0.0,51,30529,58155.468863660164,-3.43056421762662,-2.861634678460833,-2.566820394444983,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+ask,diff1,log_askvolume1,30581,3.232763459186314e-05,0.6706834079701078,0.05,True,ADF,ct,-37.7802400408418,0.0,51,30529,58157.46571705335,-3.9590665715000206,-3.4106338204995104,-3.127134697454561,,unit root (non-stationary),evidence supports stationarity,evidence supports stationarity
+ask,diff1,log_askvolume1,30581,3.232763459186314e-05,0.6706834079701078,0.05,False,KPSS,c,0.005977521480637532,0.1,288,30581,,0.739,0.463,0.347,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",stationary around a constant,evidence supports stationarity,evidence supports stationarity
+ask,diff1,log_askvolume1,30581,3.232763459186314e-05,0.6706834079701078,0.05,False,KPSS,ct,0.004916114586074368,0.1,288,30581,,0.216,0.146,0.119,"The test statistic is outside of the range of p-values available in the
+look-up table. The actual p-value is greater than the p-value returned.
+",trend-stationary,evidence supports stationarity,evidence supports stationarity
